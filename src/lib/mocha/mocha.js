@@ -73,6 +73,7 @@ Mocha.prototype.start = function (callback) {
 
   self.child.stdout.pipe(process.stdout);
   self.child.stderr.pipe(process.stderr);
+  process.stdin.pipe(self.child.stdin);
 
   var result = null;
   self.child.on('message', function (res) {
