@@ -108,16 +108,16 @@ SessionManager.prototype._waitForConnection = function (browser, callback) {
       callback();
     },
     (err) => {
-      if (err && /ECONNREFUSED/.test(err.message)) {
+    if (err && err.seleniumStack && /ECONNREFUSED/.test(err.seleniumStack.type)) {
         if (++self.retry === self.maxRetries) {
           callback('[chimp][session-manager] timed out retrying to connect to selenium server');
         }
-        log.debug('[chimp][session-manager] could not connect to the server, retrying', '(' + self.retry + '/' + self.maxRetries + ')');
+        log.warn('[chimp][session-manager] could not connect to the server, retrying', '(' + self.retry + '/' + self.maxRetries + ')');
         setTimeout(function () {
           self._waitForConnection(browser, callback);
         }, self.retryDelay);
       } else {
-        log.debug('[chimp][session-manager] Connection to the to selenium server verified');
+        log.warn('[chimp][session-manager] Connection to the to selenium server verified');
         callback();
       }
     }
