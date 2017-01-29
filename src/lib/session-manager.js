@@ -74,8 +74,15 @@ SessionManager.prototype._configureRemote = function (webdriverOptions, remote, 
         return;
       }
       if (sessions.length !== 0) {
-        log.debug('[chimp][session-manager] Found an open selenium sessions, reusing session', sessions[0].id);
-        browser._original.requestHandler.sessionID = sessions[0].id;
+        if (browser.instances) {
+          browser.instances.forEach(function (singleBrowser, singleBrowserIndex) {
+            log.debug('[chimp][session-manager] Found an open selenium sessions, reusing session', sessions[singleBrowserIndex].id, 'for', (singleBrowserIndex+1), 'instance');
+            singleBrowser._original.requestHandler.sessionID = sessions[singleBrowserIndex].id;
+          });
+        } else {
+          log.debug('[chimp][session-manager] Found an open selenium sessions, reusing session', sessions[0].id);
+          browser._original.requestHandler.sessionID = sessions[0].id;
+        }
       } else {
         log.debug('[chimp][session-manager] Did not find any open selenium sessions, not reusing a session');
       }
