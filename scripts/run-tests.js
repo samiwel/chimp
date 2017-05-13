@@ -15,19 +15,11 @@ var run = function (runOnNodeIndex, name, command) {
   }
 };
 
-var unitTestsCommand = './node_modules/.bin/jest';
-if (isCI) {
-  // Prevent exceeding the maximum RAM. Each worker needs ~385MB.
-  unitTestsCommand += ' --maxWorkers 4';
-}
-run(0, 'Running Chimp Unit tests', unitTestsCommand);
-run(0, 'Running Chimp Mocha specs in Chrome', 'node ./bin/chimp.js --mocha --path=tests/mocha');
-run(0, 'Running Chimp Jasmine specs in Chrome', 'node ./bin/chimp.js --jasmine --path=tests/jasmine');
 run(0, 'Running Chimp Cucumber tests', 'node ./bin/chimp.js --path=tests/cucumber');
 
 
 if (isCI) {
-run(1, 'Running Chimp Cucumber specs in Chrome', 'node ./bin/chimp.js --tags=~@cli --simianRepositoryId=' + env.SIMIAN_REPOSITORY + ' --simianAccessToken=' + env.SIMIAN_ACCESS_TOKEN);
+run(1, 'Running Chimp Cucumber specs in Chrome', 'node ./bin/chimp.js --tags=~@cli');
 } else {
   run(1, 'Running Chimp Cucumber specs in Chrome', 'node ./bin/chimp.js --tags=~@cli');
 }
