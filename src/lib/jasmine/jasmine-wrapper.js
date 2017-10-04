@@ -35,25 +35,29 @@ new Fiber(function runJasmineInFiber() {
     jasmine.jasmine.addSpecFilter((spec) => watchedSpecRegExp.test(spec.getFullName()));
   }
 
-  // Capability to capture screenshots
-  jasmine.jasmine.getEnv().addReporter({
-    specDone: function(result) {
-      if (screenshotHelper.shouldTakeScreenshot(result.status)) {
-        if (booleanHelper.isTruthy(process.env['chimp.saveScreenshotsToDisk'])) {
-          const affix = result.status !== 'passed' ? ' (failed)' : '';
-          const fileName = result.fullName + affix;
-          screenshotHelper.saveScreenshotsToDisk(fileName, projectDir);
-        }
-      }
-    }
-  });
-
   fiberizeJasmineApi(global);
 
   jasmine.loadConfig(getJasmineConfig());
-  jasmine.configureDefaultReporter(
-    JSON.parse(process.env['chimp.jasmineReporterConfig'])
-  );
+
+  if (jasmineConfig.jasmineReporter) {
+    jasmine.jasmine.getEnv().addReporter(jasmineConfig.jasmineReporter);
+  } else {
+    // Capability to capture screenshots
+    jasmine.jasmine.getEnv().addReporter({
+      specDone: function(result) {
+        if (screenshotHelper.shouldTakeScreenshot(result.status)) {
+          if (booleanHelper.isTruthy(process.env['chimp.saveScreenshotsToDisk'])) {
+            const affix = result.status !== 'passed' ? ' (failed)' : '';
+            const fileName = result.fullName + affix;
+            screenshotHelper.saveScreenshotsToDisk(fileName, projectDir);
+          }
+        }
+      }
+    });
+    jasmine.configureDefaultReporter(
+      JSON.parse(process.env['chimp.jasmineReporterConfig'])
+    );
+  }
   jasmine.execute();
 }).run();
 
