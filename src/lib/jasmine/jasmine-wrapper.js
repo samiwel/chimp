@@ -3,12 +3,13 @@ require('../babel-register');
 import path from 'path';
 import Fiber from 'fibers';
 import _ from 'underscore';
-import {parseBoolean, parseString } from '../environment-variable-parsers';
+import {parseBoolean, parseString} from '../environment-variable-parsers';
 import escapeRegExp from '../utils/escape-reg-exp';
 import fiberizeJasmineApi from './jasmine-fiberized-api';
 import screenshotHelper from '../screenshot-helper';
 import booleanHelper from '../boolean-helper';
-import log from'../log';
+
+import {SpecReporter} from "jasmine-spec-reporter";
 
 new Fiber(function runJasmineInFiber() {
   const projectDir = process.env.PWD;
@@ -38,37 +39,47 @@ new Fiber(function runJasmineInFiber() {
 
   fiberizeJasmineApi(global);
 
-  const jasmineConfig = getJasmineConfig();
+  jasmine.loadConfig(getJasmineConfig());
 
-  jasmine.loadConfig(jasmineConfig);
+  jasmine.jasmine.getEnv().addReporter(new SpecReporter({
+    spec: {
+      displayStacktrace: true,
+      displaySuccessesSummary: false, // display summary of all successes after execution
+      displayFailuresSummary: true,   // display summary of all failures after execution
+      displayPendingSummary: true,    // display summary of all pending specs after execution
+      displaySuccessfulSpec: true,    // display each successful spec
+      displayFailedSpec: true,        // display each failed spec
+      displayPendingSpec: true,      // display each pending spec
+      displaySpecDuration: true,     // display each spec duration
+      displaySuiteNumber: false,      // display each suite number (hierarchical)
+    },
+    summary: {
+      displayErrorMessages: true,
+      displayStacktrace: true,
+      displaySuccessful: false,
+      displayFailed: true,
+      displayPending: true,
+      displayDuration: true,
+    },
+    colors: {
+      success: 'green',
+      failure: 'red',
+      pending: 'yellow',
+    },
+    prefixes: {
+      success: '✓ ',
+      failure: '✗ ',
+      pending: '* ',
+    },
+    customProcessors: [],
+  }));
 
-  if (jasmineConfig.jasmineReporter) {
-    jasmine.jasmine.getEnv().addReporter(jasmineConfig.jasmineReporter);
-  } else {
-    // Capability to capture screenshots
-    jasmine.jasmine.getEnv().addReporter({
-      specDone: function(result) {
-        if (screenshotHelper.shouldTakeScreenshot(result.status)) {
-          if (booleanHelper.isTruthy(process.env['chimp.saveScreenshotsToDisk'])) {
-            const affix = result.status !== 'passed' ? ' (failed)' : '';
-            const fileName = result.fullName + affix;
-            screenshotHelper.saveScreenshotsToDisk(fileName, projectDir);
-          }
-        }
-      }
-    });
-    jasmine.configureDefaultReporter(
-      JSON.parse(process.env['chimp.jasmineReporterConfig'])
-    );
-  }
   jasmine.execute();
 }).run();
 
 
 function getJasmineConfig() {
   const jasmineConfig = JSON.parse(process.env['chimp.jasmineConfig']);
-
-  log.info(jasmineConfig);
 
   if (jasmineConfig.specDir) {
     if (!jasmineConfig.spec_dir) {
