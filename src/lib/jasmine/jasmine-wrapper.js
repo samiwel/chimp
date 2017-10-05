@@ -8,6 +8,7 @@ import escapeRegExp from '../utils/escape-reg-exp';
 import fiberizeJasmineApi from './jasmine-fiberized-api';
 import screenshotHelper from '../screenshot-helper';
 import booleanHelper from '../boolean-helper';
+import log from'../log';
 
 new Fiber(function runJasmineInFiber() {
   const projectDir = process.env.PWD;
@@ -37,7 +38,9 @@ new Fiber(function runJasmineInFiber() {
 
   fiberizeJasmineApi(global);
 
-  jasmine.loadConfig(getJasmineConfig());
+  const jasmineConfig = getJasmineConfig();
+
+  jasmine.loadConfig(jasmineConfig);
 
   if (jasmineConfig.jasmineReporter) {
     jasmine.jasmine.getEnv().addReporter(jasmineConfig.jasmineReporter);
@@ -64,6 +67,8 @@ new Fiber(function runJasmineInFiber() {
 
 function getJasmineConfig() {
   const jasmineConfig = JSON.parse(process.env['chimp.jasmineConfig']);
+
+  log.info(jasmineConfig);
 
   if (jasmineConfig.specDir) {
     if (!jasmineConfig.spec_dir) {
